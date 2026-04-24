@@ -2,168 +2,170 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>MassAi</title>
-<style>
-        /* 전체 배경을 깔끔하게 */
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center; /* 가로 중앙 */
-            align-items: center;     /* 세로 중앙 */
-            min-height: 100vh;
-            background-color: #f0f2f5;
-            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MassAi - 스마트 AI 채팅</title>
+    <style>
+        /* 기본 스타일 초기화 */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', -apple-system, sans-serif; }
+        body { background-color: #343541; color: white; overflow: hidden; }
 
-        /* 로그인/인증 구역 스타일 */
-        #auth-area {
-            text-align: center;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 90%;            /* 모바일 대응: 화면의 90% */
-            max-width: 400px;      /* PC에서는 최대 400px */
+        /* 1. 로그인 화면 (중앙 배치) */
+        #login-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; background: linear-gradient(135deg, #1e1e1e 0%, #343541 100%);
         }
+        .login-box { text-align: center; padding: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .login-box h1 { font-size: 3rem; margin-bottom: 10px; letter-spacing: -1px; }
+        .login-box p { color: #aaa; margin-bottom: 30px; }
+        #loginBtn {
+            padding: 12px 24px; font-size: 1rem; cursor: pointer; border-radius: 8px; border: none;
+            background-color: #4285F4; color: white; font-weight: bold; transition: 0.3s;
+        }
+        #loginBtn:hover { background-color: #357abd; transform: translateY(-2px); }
 
-        /* 구글 로그인 버튼 디자인 */
-        #login-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #555;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+        /* 2. 메인 화면 구조 */
+        #main-screen { display: none; height: 100vh; width: 100vw; }
 
-        #login-btn:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        /* 왼쪽 사이드바 */
+        .sidebar {
+            width: 260px; background-color: #202123; padding: 15px;
+            display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1);
         }
+        .new-chat {
+            border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;
+            text-align: center; cursor: pointer; margin-bottom: 20px; transition: 0.2s;
+        }
+        .new-chat:hover { background-color: rgba(255,255,255,0.1); }
+        .history-list { flex: 1; overflow-y: auto; font-size: 0.9rem; }
+        .history-item { padding: 10px; margin-bottom: 5px; border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item:hover { background-color: #2a2b32; }
 
-        /* 사용자 정보 구역 */
-        #user-info {
-            display: none;
+        /* 중앙 채팅 영역 */
+        .chat-container { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        /* 상단 헤더 (우측 프로필) */
+        header {
+            height: 60px; display: flex; justify-content: flex-end; align-items: center;
+            padding: 0 20px; background: rgba(52, 53, 65, 0.8);
         }
+        .user-info { display: flex; align-items: center; gap: 10px; background: #40414f; padding: 5px 12px; border-radius: 20px; }
+        .user-info img { width: 28px; height: 28px; border-radius: 50%; }
+        .user-info span { font-size: 0.9rem; }
+        #logoutBtn { font-size: 0.8rem; color: #ff4d4d; cursor: pointer; margin-left: 10px; border: none; background: none; }
 
-        #user-pic {
-        width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid #007bff;
-            margin-bottom: 15px;
-        }
+        /* 채팅 창 */
+        #chat-window { flex: 1; overflow-y: auto; padding: 40px 20% 100px 20%; display: flex; flex-direction: column; gap: 20px; }
+        .msg { padding: 15px; border-radius: 8px; max-width: 85%; line-height: 1.6; }
+        .user-msg { align-self: flex-end; background-color: #40414f; }
+        .ai-msg { align-self: flex-start; background-color: #444654; border: 1px solid rgba(255,255,255,0.1); }
 
-        #user-name {
-            display: block;
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
+        /* 하단 입력창 */
+        .input-area {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 60%; max-width: 800px; background: #40414f; border-radius: 12px;
+            padding: 15px; box-shadow: 0 0 15px rgba(0,0,0,0.2); display: flex; gap: 10px;
         }
-
-        #logout-btn {
-            padding: 10px 20px;
-            background-color: #ff4757;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+        #userInput { flex: 1; background: none; border: none; color: white; outline: none; font-size: 1rem; }
     </style>
-
-    <div id="auth-area">
-        <div id="login-section">
-            <h2 style="margin-bottom: 20px;">Gemma AI Chat</h2>
-            <button id="login-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                구글로 로그인하기
-            </button>
-        </div>
-
-        <div id="user-info">
-            <img id="user-pic" src="">
-            <span id="user-name">로그인 중...</span>
-            <button id="logout-btn">로그아웃</button>
-        </div>
-    </div>
 </head>
 <body>
 
-    <div id="chat-container">
-        <div style="background:#333; color:white; padding:10px; text-align:center; font-weight:bold;">
-            Gemma AI Assistant
-        </div>
-        <div id="chat-window">
-            <div class="message ai-msg">안녕하세요 승현 님! 무엇을 도와드릴까요?</div>
-        </div>
-        <div id="input-area">
-            <input type="text" id="user-input" placeholder="질문을 입력하세요...">
-            <button id="send-btn">전송</button>
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>MassAi</h1>
+            <p>승현님의 개인 AI 어시스턴트에 로그인하세요</p>
+            <button id="loginBtn">Google 계정으로 시작하기</button>
         </div>
     </div>
 
-    <div id="auth-area" style="position: fixed; top: 10px; right: 10px;">
-        <button id="login-btn" style="padding: 10px; cursor: pointer;">구글로 시작하기</button>
-        <div id="user-info" style="display: none;">
-            <img id="user-pic" src="" style="width: 30px; border-radius: 50%;">
-            <span id="user-name"></span>
-            <button id="logout-btn">로그아웃</button>
-        </div>
+    <div id="main-screen">
+        <nav class="sidebar">
+            <div class="new-chat">+ 새로운 채팅</div>
+            <div class="history-list" id="historyList">
+                <div class="history-item">최근 대화 1</div>
+                <div class="history-item">최근 대화 2</div>
+            </div>
+        </nav>
+
+        <section class="chat-container">
+            <header>
+                <div class="user-info">
+                    <img id="userPhoto" src="" alt="">
+                    <span id="userName">사용자</span>
+                    <button id="logoutBtn">로그아웃</button>
+                </div>
+            </header>
+
+            <div id="chat-window">
+                <div class="msg ai-msg">안녕하세요 승현 님! 오늘은 무엇을 도와드릴까요?</div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="메시지를 입력하세요..." onkeypress="if(event.keyCode==13) sendMessage()">
+            </div>
+        </section>
     </div>
 
     <script type="module">
-      // Firebase SDK 불러오기
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-      // 🔥 중요: Firebase 콘솔 -> 프로젝트 설정 -> 내 앱에서 복사한 설정을 여기에 붙여넣으세요!
-      const firebaseConfig = {
-        apiKey: "AIzaSyDPK7nUBcCygsmDAz_lUxDiCtFCqJrdi18",
-        authDomain: "massai-4dd0c.firebaseapp.com/",
-        projectId: "massai-4dd0c",
-        storageBucket: "massai-4dd0c.firebasestorage.app",
-        messagingSenderId: "429274154813",
-        appId: "1:429274154813:web:451f31aee76ea7d9d62754"
-      };
+        // 파이어베이스 설정 (승현님의 실제 설정값으로 채워주세요)
+        const firebaseConfig = {
+            apiKey: "본인의 API Key",
+            authDomain: "massai-4dd0c.firebaseapp.com",
+            projectId: "massai-4dd0c",
+            storageBucket: "massai-4dd0c.appspot.com",
+            messagingSenderId: "본인의 ID",
+            appId: "본인의 App ID"
+        };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-      const loginBtn = document.getElementById('login-btn');
-      const logoutBtn = document.getElementById('logout-btn');
-      const authArea = document.getElementById('auth-area');
-      const userInfo = document.getElementById('user-info');
+        const loginScreen = document.getElementById('login-screen');
+        const mainScreen = document.getElementById('main-screen');
 
-      // 로그인 상태 감시
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          loginBtn.style.display = 'none';
-          userInfo.style.display = 'block';
-          document.getElementById('user-name').innerText = user.displayName + "님";
-          document.getElementById('user-pic').src = user.photoURL;
-          console.log("로그인 성공:", user);
-        } else {
-          loginBtn.style.display = 'block';
-          userInfo.style.display = 'none';
+        // 로그인 상태 감지
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginScreen.style.display = 'none';
+                mainScreen.style.display = 'flex';
+                document.getElementById('userName').innerText = user.displayName;
+                document.getElementById('userPhoto').src = user.photoURL;
+            } else {
+                loginScreen.style.display = 'flex';
+                mainScreen.style.display = 'none';
+            }
+        });
+
+        // 로그인 버튼 클릭
+        document.getElementById('loginBtn').onclick = () => {
+            signInWithPopup(auth, provider).catch((error) => {
+                alert("로그인 에러: " + error.message);
+            });
+        };
+
+        // 로그아웃 버튼 클릭
+        document.getElementById('logoutBtn').onclick = () => {
+            signOut(auth);
+        };
+
+        // 메시지 전송 기능 (간단 예시)
+        window.sendMessage = function() {
+            const input = document.getElementById('userInput');
+            const chatWindow = document.getElementById('chat-window');
+            if(input.value.trim() === "") return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg user-msg';
+            userMsg.innerText = input.value;
+            chatWindow.appendChild(userMsg);
+            
+            input.value = "";
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-      });
-
-      // 구글 로그인 팝업 실행
-      loginBtn.onclick = () => signInWithPopup(auth, provider);
-  
-      // 로그아웃
-      logoutBtn.onclick = () => signOut(auth);
     </script>
 </body>
 </html>
