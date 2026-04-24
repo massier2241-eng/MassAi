@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>MassAi</title>
+<style>
+        /* 전체 배경을 깔끔하게 */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center; /* 가로 중앙 */
+            align-items: center;     /* 세로 중앙 */
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        }
+
+        /* 로그인/인증 구역 스타일 */
+        #auth-area {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;            /* 모바일 대응: 화면의 90% */
+            max-width: 400px;      /* PC에서는 최대 400px */
+        }
+
+        /* 구글 로그인 버튼 디자인 */
+        #login-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #555;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #login-btn:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* 사용자 정보 구역 */
+        #user-info {
+            display: none;
+        }
+
+        #user-pic {
+        width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #007bff;
+            margin-bottom: 15px;
+        }
+
+        #user-name {
+            display: block;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        #logout-btn {
+            padding: 10px 20px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+
+    <div id="auth-area">
+        <div id="login-section">
+            <h2 style="margin-bottom: 20px;">Gemma AI Chat</h2>
+            <button id="login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                구글로 로그인하기
+            </button>
+        </div>
+
+        <div id="user-info">
+            <img id="user-pic" src="">
+            <span id="user-name">로그인 중...</span>
+            <button id="logout-btn">로그아웃</button>
+        </div>
+    </div>
+</head>
+<body>
+
+    <div id="chat-container">
+        <div style="background:#333; color:white; padding:10px; text-align:center; font-weight:bold;">
+            Gemma AI Assistant
+        </div>
+        <div id="chat-window">
+            <div class="message ai-msg">안녕하세요 승현 님! 무엇을 도와드릴까요?</div>
+        </div>
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="질문을 입력하세요...">
+            <button id="send-btn">전송</button>
+        </div>
+    </div>
+
+    <div id="auth-area" style="position: fixed; top: 10px; right: 10px;">
+        <button id="login-btn" style="padding: 10px; cursor: pointer;">구글로 시작하기</button>
+        <div id="user-info" style="display: none;">
+            <img id="user-pic" src="" style="width: 30px; border-radius: 50%;">
+            <span id="user-name"></span>
+            <button id="logout-btn">로그아웃</button>
+        </div>
+    </div>
+
+    <script type="module">
+      // Firebase SDK 불러오기
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+      // 🔥 중요: Firebase 콘솔 -> 프로젝트 설정 -> 내 앱에서 복사한 설정을 여기에 붙여넣으세요!
+      const firebaseConfig = {
+        apiKey: "AIzaSyDPK7nUBcCygsmDAz_lUxDiCtFCqJrdi18",
+        authDomain: "massai-4dd0c.firebaseapp.com/",
+        projectId: "massai-4dd0c",
+        storageBucket: "massai-4dd0c.firebasestorage.app",
+        messagingSenderId: "429274154813",
+        appId: "1:429274154813:web:451f31aee76ea7d9d62754"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+      const authArea = document.getElementById('auth-area');
+      const userInfo = document.getElementById('user-info');
+
+      // 로그인 상태 감시
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          loginBtn.style.display = 'none';
+          userInfo.style.display = 'block';
+          document.getElementById('user-name').innerText = user.displayName + "님";
+          document.getElementById('user-pic').src = user.photoURL;
+          console.log("로그인 성공:", user);
+        } else {
+          loginBtn.style.display = 'block';
+          userInfo.style.display = 'none';
+        }
+      });
+
+      // 구글 로그인 팝업 실행
+      loginBtn.onclick = () => signInWithPopup(auth, provider);
+  
+      // 로그아웃
+      logoutBtn.onclick = () => signOut(auth);
+    </script>
+</body>
+</html>
